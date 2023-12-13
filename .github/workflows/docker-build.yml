@@ -1,0 +1,47 @@
+name: Build and Upload Docker Image
+
+on:
+  push:
+    branches:
+      - master  # Adjust this branch name as needed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        arch: [aarch64]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up QEMU
+      run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+
+    - name: Set up Docker
+      run: |
+        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        sudo service docker restart
+
+    - name: Build Docker image
+      run: |
+        docker build -t qbittorentvpn:latest .
+
+    - name: Save Docker image
+      run: |
+        mkdir -p artifacts
+        docker save -o artifacts/qbittorentvpn.tar qbittorentvpn:latest
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Upload to Releases
+      uses: actions/upload-artifact@v2
+      with:
+        name: qbittorentvpn:latest
+        path: artifacts/qbittorentvpn-latest.tar
