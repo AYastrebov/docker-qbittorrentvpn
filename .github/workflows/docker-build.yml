@@ -12,28 +12,27 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04]
-        arch: [aarch64]
+        arch: [aarch64, x86_64]
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up QEMU
-      run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      uses: docker/setup-qemu-action@v3
 
-    - name: Set up Docker
-      run: |
-        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo service docker restart
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Build Docker image
       run: |
-        docker build -t qbittorentvpn:latest .
+        docker buildx create --use
+        docker buildx build --platform linux/arm64,linux/amd64 -t qbittorentvpn:latest .
 
     - name: Save Docker image
       run: |
         mkdir -p artifacts
-        docker save -o artifacts/qbittorentvpn.tar qbittorentvpn:latest
+        docker save -o artifacts/qbittorentvpn-latest.tar qbittorentvpn:latest
 
   upload:
     needs: build
@@ -41,7 +40,7 @@ jobs:
 
     steps:
     - name: Upload to Releases
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: qbittorentvpn:latest
         path: artifacts/qbittorentvpn-latest.tar
