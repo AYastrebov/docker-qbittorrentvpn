@@ -16,7 +16,7 @@ RUN apt update \
     curl \
     jq \
     unzip \
-    && ARCH=$(dpkg --print-architecture) \
+    && ARCH=$(uname -m) \
     && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/userdocs/qbt-ninja-build/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
     && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq --arg ARCH "$ARCH" '.[] | select(.name | match("ninja-\($ARCH)";"i")) .browser_download_url' | tr -d '"') \
     && curl -o /opt/ninja -L ${NINJA_DOWNLOAD_URL} \
@@ -42,7 +42,7 @@ RUN apt update \
     ca-certificates \
     curl \
     jq \
-    && ARCH=$(dpkg --print-architecture) \
+    && ARCH=$(uname -m) \
     && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
     && CMAKE_DOWNLOAD_URL=$(curl -sX GET ${CMAKE_ASSETS} | jq --arg ARCH "$ARCH" '.[] | select(.name | match("Linux-\($ARCH).sh";"i")) .browser_download_url' | tr -d '"') \
     && curl -o /opt/cmake.sh -L ${CMAKE_DOWNLOAD_URL} \
