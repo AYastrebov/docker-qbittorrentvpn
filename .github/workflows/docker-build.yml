@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: qbittorrentvpn # ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
