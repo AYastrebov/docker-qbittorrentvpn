@@ -8,6 +8,32 @@ RUN usermod -u 99 nobody
 # Make directories
 RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent
 
+# Install Ninja
+RUN apt update \
+    && apt upgrade -y \
+    && apt install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    jq \
+    unzip \
+    && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/userdocs/qbt-ninja-build/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
+    && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-aarch64";"i")) .browser_download_url' | tr -d '"') \
+    && curl -o /opt/ninja -L ${NINJA_DOWNLOAD_URL} \
+    && mv /opt/ninja /usr/local/bin/ninja \
+    && chmod +x /usr/local/bin/ninja \
+    && rm -rf /opt/* \
+    && apt purge -y \
+    ca-certificates \
+    curl \
+    jq \
+    unzip \
+    && apt-get clean \
+    && apt --purge autoremove -y \
+    && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/*
+
 # Install boost
 RUN apt update \
     && apt upgrade -y  \
@@ -30,32 +56,6 @@ RUN apt update \
     ca-certificates \
     g++ \
     libxml2-utils \
-    && apt-get clean \
-    && apt --purge autoremove -y \
-    && rm -rf \
-    /var/lib/apt/lists/* \
-    /tmp/* \
-    /var/tmp/*
-
-# Install Ninja
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    jq \
-    unzip \
-    && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/userdocs/qbt-ninja-build/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-    && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-aarch64";"i")) .browser_download_url' | tr -d '"') \
-    && curl -o /opt/ninja -L ${NINJA_DOWNLOAD_URL} \
-    && mv /opt/ninja /usr/local/bin/ninja \
-    && chmod +x /usr/local/bin/ninja \
-    && rm -rf /opt/* \
-    && apt purge -y \
-    ca-certificates \
-    curl \
-    jq \
-    unzip \
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
