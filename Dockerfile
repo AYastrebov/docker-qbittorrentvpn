@@ -16,8 +16,9 @@ RUN apt update \
     curl \
     jq \
     unzip \
+    && ARCH=$(dpkg --print-architecture) \
     && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/userdocs/qbt-ninja-build/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-    && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-aarch64";"i")) .browser_download_url' | tr -d '"') \
+    && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq --arg ARCH "$ARCH" '.[] | select(.name | match("ninja-\($ARCH)";"i")) .browser_download_url' | tr -d '"') \
     && curl -o /opt/ninja -L ${NINJA_DOWNLOAD_URL} \
     && mv /opt/ninja /usr/local/bin/ninja \
     && chmod +x /usr/local/bin/ninja \
@@ -27,6 +28,31 @@ RUN apt update \
     curl \
     jq \
     unzip \
+    && apt-get clean \
+    && apt --purge autoremove -y \
+    && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/*
+
+# Install cmake
+RUN apt update \
+    && apt upgrade -y \
+    && apt install -y  --no-install-recommends \
+    ca-certificates \
+    curl \
+    jq \
+    && ARCH=$(dpkg --print-architecture) \
+    && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
+    && CMAKE_DOWNLOAD_URL=$(curl -sX GET ${CMAKE_ASSETS} | jq --arg ARCH "$ARCH" '.[] | select(.name | match("Linux-\($ARCH).sh";"i")) .browser_download_url' | tr -d '"') \
+    && curl -o /opt/cmake.sh -L ${CMAKE_DOWNLOAD_URL} \
+    && chmod +x /opt/cmake.sh \
+    && /bin/bash /opt/cmake.sh --skip-license --prefix=/usr \
+    && rm -rf /opt/* \
+    && apt purge -y \
+    ca-certificates \
+    curl \
+    jq \
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
@@ -56,30 +82,6 @@ RUN apt update \
     ca-certificates \
     g++ \
     libxml2-utils \
-    && apt-get clean \
-    && apt --purge autoremove -y \
-    && rm -rf \
-    /var/lib/apt/lists/* \
-    /tmp/* \
-    /var/tmp/*
-
-# Install cmake
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y  --no-install-recommends \
-    ca-certificates \
-    curl \
-    jq \
-    && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-    && CMAKE_DOWNLOAD_URL=$(curl -sX GET ${CMAKE_ASSETS} | jq '.[] | select(.name | match("Linux-aarch64.sh";"i")) .browser_download_url' | tr -d '"') \
-    && curl -o /opt/cmake.sh -L ${CMAKE_DOWNLOAD_URL} \
-    && chmod +x /opt/cmake.sh \
-    && /bin/bash /opt/cmake.sh --skip-license --prefix=/usr \
-    && rm -rf /opt/* \
-    && apt purge -y \
-    ca-certificates \
-    curl \
-    jq \
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
