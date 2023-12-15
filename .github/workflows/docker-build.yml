@@ -1,9 +1,12 @@
 name: Build and Upload Docker Image
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
+    - master
+    tags:
+    - 'v*'
 
 env:
   REGISTRY: ghcr.io
@@ -12,11 +15,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        os: [ubuntu-20.04]
-        arch: [aarch64, x86_64]
 
     permissions:
       contents: read
@@ -37,7 +35,10 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        flavor: |
+          latest=auto
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
