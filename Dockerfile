@@ -74,7 +74,12 @@ RUN apt update \
     && tar -xzf /opt/boost_${BOOST_VERSION}.tar.gz -C /opt \
     && cd /opt/boost_${BOOST_VERSION} \
     && ./bootstrap.sh --prefix=/usr \
-    && ./b2 --prefix=/usr install \
+    # Apply workaround for non-x86 platforms by defining BOOST_STACKTRACE_USE_NOOP
+    # && ./b2 --prefix=/usr install define=BOOST_STACKTRACE_USE_NOOP \
+    # Alternatively, you can use one of the other workarounds:
+    && ./b2 --prefix=/usr install define=BOOST_STACKTRACE_LIBCXX_RUNTIME_MAY_CAUSE_MEMORY_LEAK \
+    # Or build with single-threading:
+    # && ./b2 --prefix=/usr install threading=single \
     && cd /opt \
     && rm -rf /opt/* \
     && apt -y purge \
