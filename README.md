@@ -59,6 +59,7 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv6.conf.all.disable_ipv6=0
     restart: unless-stopped
+```
 
 # Variables, Volumes, and Ports
 ## Environment Variables
