@@ -1,6 +1,5 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
-[![Docker Pulls](https://img.shields.io/docker/pulls/dyonr/qbittorrentvpn)](https://hub.docker.com/r/dyonr/qbittorrentvpn)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/dyonr/qbittorrentvpn/latest)](https://hub.docker.com/r/dyonr/qbittorrentvpn)
+![GitHub Tag](https://img.shields.io/github/v/tag/ayastrebov/docker-qbittorrentvpn)
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
 
@@ -34,18 +33,32 @@ $ docker run  -d \
               --cap-add NET_ADMIN \
               --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
               --restart unless-stopped \
-              dyonr/qbittorrentvpn
+              ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
 ```
 
-## Docker Tags
-| Tag | Description |
-|----------|----------|
-| `dyonr/qbittorrentvpn:latest` | The latest version of qBittorrent with libtorrent 1_x_x |
-| `dyonr/qbittorrentvpn:rc_2_0` | The latest version of qBittorrent with libtorrent 2_x_x |
-| `dyonr/qbittorrentvpn:legacy_iptables` | The latest version of qBittorrent, libtorrent 1_x_x and an experimental feature to fix problems with QNAP NAS systems, [Issue #25](https://github.com/DyonR/docker-qbittorrentvpn/issues/25) |
-| `dyonr/qbittorrentvpn:alpha` | The latest alpha version of qBittorrent with libtorrent 2_0, incase you feel like testing new features |
-| `dyonr/qbittorrentvpn:dev` | This branch is used for testing new Docker features or improvements before merging it to the main branch |
-| `dyonr/qbittorrentvpn:v4_2_x` | (Legacy) qBittorrent version 4.2.x with libtorrent 1_x_x |
+## Docker Compose
+Sample docker-compose.yml
+```yaml
+services:
+  qbittorrentvpn:
+    image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+    container_name: qbittorrentvpn
+    environment:
+      - VPN_ENABLED=yes
+      - VPN_TYPE=wireguard
+      - RESTART_CONTAINER=yes
+      - LAN_NETWORK=192.168.0.0/24
+    volumes:
+      - /your/config/path/:/config
+      - /your/downloads/path/:/downloads
+    ports:
+      - 8080:8080/tcp
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+    restart: unless-stopped
 
 # Variables, Volumes, and Ports
 ## Environment Variables
@@ -131,6 +144,7 @@ Please provide logs, Docker version and other information that can simplify repr
 If possible, always use the most up to date version of Docker, you operating system, kernel and the container itself. Support is always a best-effort basis.
 
 ### Credits:
+[DyonR/docker-qbittorrentvpn](https://github.com/DyonR/docker-qbittorrentvpn)
 [MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)  
 [DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)  
-This projects originates from MarkusMcNugen/docker-qBittorrentvpn, but forking was not possible since DyonR/jackettvpn uses the fork already.
+This project is a fork of DyonR/docker-qbittorrentvpn, which itself originates from MarkusMcNugen/docker-qBittorrentvpn. Forking from DyonR/docker-qbittorrentvpn was not possible as it was already forked by DyonR/jackettvpn.
