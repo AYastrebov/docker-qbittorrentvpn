@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     dos2unix \
+    iproute2 \
     inetutils-ping \
     ipcalc \
     iptables \
