@@ -50,9 +50,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wireguard-tools \
     libtorrent-rasterbar2.0 \
     libqt6core6 \
-    libqt6gui6 \
     libqt6network6 \
-    libqt6widgets6 \
+    libqt6sql6 \
     kmod \
     procps && \
     rm -rf /var/lib/apt/lists/*
