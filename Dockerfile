@@ -52,6 +52,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libqt6core6 \
     libqt6network6 \
     libqt6sql6 \
+    libqt6xml6 \
     kmod \
     procps && \
     rm -rf /var/lib/apt/lists/*
