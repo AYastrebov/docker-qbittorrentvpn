@@ -48,6 +48,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openresolv \
     openvpn \
     wireguard-tools \
+    libtorrent-rasterbar2.0t64 \
+    kmod \
     procps && \
     rm -rf /var/lib/apt/lists/*
 
