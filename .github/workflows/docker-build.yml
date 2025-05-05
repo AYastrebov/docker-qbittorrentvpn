@@ -62,6 +62,6 @@ jobs:
           provenance: false
           sbom: false
           network: host
-          allow: |
-            network.host
-            security.insecure
+          allow:
+            - network.host
+            - security.insecure
