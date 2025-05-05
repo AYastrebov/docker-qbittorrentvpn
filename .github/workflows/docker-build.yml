@@ -47,7 +47,7 @@ jobs:
               max-parallelism = 2
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -61,7 +61,3 @@ jobs:
           outputs: type=registry
           provenance: false
           sbom: false
-          network: host
-          allow:
-            - network.host
-            - security.insecure
