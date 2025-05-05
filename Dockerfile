@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Fetch and compile qBittorrent
-ARG QBITTORRENT_VERSION=5.0.4
+ARG QBITTORRENT_VERSION=5.1.0
 RUN curl -L -o qbittorrent.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-${QBITTORRENT_VERSION}/qbittorrent-${QBITTORRENT_VERSION}.tar.gz/download" && \
     tar -xzf qbittorrent.tar.gz --strip-components=1 && rm qbittorrent.tar.gz && \
     cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release \
