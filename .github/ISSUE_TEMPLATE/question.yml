@@ -1,0 +1,80 @@
+name: Question/Support
+description: Ask a question or get help with setup
+title: "[Question]: "
+labels: ["question", "support"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reaching out! 
+        
+        Before asking, please:
+        - Check the [README.md](../README.md) and [documentation](../docker-compose.example.yml)
+        - Search existing issues and discussions
+        - Try the production example configuration
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: I'm trying to understand how to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to achieve?
+      placeholder: |
+        I want to set up...
+        My goal is to...
+        I'm having trouble with...
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What I've Tried
+      description: What have you already tried?
+      placeholder: |
+        I tried following the README...
+        I looked at the examples...
+        I searched for...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Your setup details
+      value: |
+        - **Container Version**: 
+        - **Docker Version**: 
+        - **Host OS**: 
+        - **VPN Provider**: 
+      render: markdown
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration (if relevant)
+      description: Your current configuration (remove sensitive data!)
+      render: yaml
+      placeholder: |
+        # If your question is about configuration, paste it here
+        # Remember to remove passwords, VPN credentials, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have read the README and documentation
+          required: true
+        - label: I have searched existing issues for similar questions
+          required: true
+        - label: I have removed all sensitive information
+          required: true

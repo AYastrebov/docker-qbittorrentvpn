@@ -1,0 +1,114 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 
+        
+        Before submitting, please:
+        - Search existing issues to avoid duplicates
+        - Use the latest version of the container
+        - Test with the provided examples
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe the issue you're experiencing
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run container with configuration...
+        2. Access WebUI at...
+        3. Click on...
+        4. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: Describe what should have happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your environment details
+      value: |
+        - **Container Version**: 
+        - **Docker Version**: 
+        - **Host OS**: 
+        - **Architecture**: (AMD64/ARM64)
+        - **VPN Type**: (WireGuard/OpenVPN)
+        - **VPN Provider**: 
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Your docker-compose.yml or docker run command (remove sensitive data!)
+      render: yaml
+      placeholder: |
+        # Paste your configuration here
+        # Remember to remove passwords, VPN credentials, etc.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Container Logs
+      description: Relevant logs from the container
+      render: shell
+      placeholder: |
+        # Get logs with: docker-compose logs qbittorrentvpn
+        # or: docker logs container_name
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem
+      placeholder: Screenshots, related issues, attempts to fix, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I am using the latest version of the container
+          required: true
+        - label: I have removed all sensitive information from logs and configuration
+          required: true
+        - label: I have provided enough information to reproduce the issue
+          required: true

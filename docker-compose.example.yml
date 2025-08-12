@@ -1,0 +1,111 @@
+# qBittorrent VPN Docker Compose Example
+# 
+# This is a complete working example based on a production setup.
+# Copy this file to docker-compose.yml and adjust the values below.
+#
+# Usage:
+#   1. Copy: cp docker-compose.example.yml docker-compose.yml
+#   2. Edit the environment variables below
+#   3. Create config and downloads directories
+#   4. Add your VPN configuration files
+#   5. Run: docker-compose up -d
+
+services:
+  qbittorrentvpn:
+    image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+    container_name: qbittorrentvpn
+    hostname: qbittorrentvpn
+    
+    environment:
+      # === TIMEZONE ===
+      # Set your local timezone - find yours at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - TZ=Europe/Berlin
+      
+      # === VPN CONFIGURATION ===
+      - VPN_ENABLED=yes
+      - VPN_TYPE=wireguard              # Options: 'wireguard' or 'openvpn'
+      - RESTART_CONTAINER=yes           # Restart container if VPN connection fails
+      
+      # === NETWORK CONFIGURATION ===
+      # Your local network CIDR - find with: ip route | grep 192.168
+      # Examples: 192.168.1.0/24, 192.168.0.0/24, 10.0.0.0/8
+      - LAN_NETWORK=192.168.1.0/24
+      
+      # === USER/GROUP IDS ===
+      # Set to your user ID and group ID - find with: id
+      # This ensures proper file permissions
+      - PUID=1000
+      - PGID=1000
+      
+      # === OPTIONAL SETTINGS ===
+      # Uncomment and adjust as needed:
+      # - UMASK=002
+      # - NAME_SERVERS=1.1.1.1,1.0.0.1
+      # - HEALTH_CHECK_INTERVAL=300
+      # - ADDITIONAL_PORTS=1234,5678
+      
+    volumes:
+      # Config directory (will contain qBittorrent settings and VPN configs)
+      - ./config:/config
+      
+      # Downloads directory 
+      - ./downloads:/downloads
+      
+      # Optional: Additional download paths
+      # - /path/to/media:/media
+      # - /path/to/complete:/complete
+    
+    ports:
+      # qBittorrent WebUI
+      - "8080:8080/tcp"
+      
+      # Optional: Expose BitTorrent ports (if not using VPN)
+      # - "8999:8999/tcp"
+      # - "8999:8999/udp"
+    
+    cap_add:
+      # Required for VPN functionality
+      - NET_ADMIN
+    
+    sysctls:
+      # Required for VPN killswitch
+      - net.ipv4.conf.all.src_valid_mark=1
+      
+      # Enable IPv6 if your network supports it
+      - net.ipv6.conf.all.disable_ipv6=0
+    
+    restart: unless-stopped
+
+# === SETUP INSTRUCTIONS ===
+#
+# 1. Create directories:
+#    mkdir -p config downloads
+#
+# 2. For WireGuard:
+#    - Place your wg0.conf file in: ./config/wireguard/wg0.conf
+#
+# 3. For OpenVPN:
+#    - Place your .ovpn file in: ./config/openvpn/
+#    - If using auth-user-pass, create: ./config/openvpn/credentials.conf
+#      with your username on line 1 and password on line 2
+#
+# 4. Adjust the LAN_NETWORK to match your local network
+#
+# 5. Set correct PUID/PGID (run 'id' command to find yours)
+#
+# 6. Start the container:
+#    docker-compose up -d
+#
+# 7. Check logs:
+#    docker-compose logs -f
+#
+# 8. Access WebUI:
+#    http://your-server-ip:8080
+#    Default credentials: admin / adminadmin
+#
+# === TROUBLESHOOTING ===
+#
+# - Container keeps restarting: Check VPN config files
+# - Permission issues: Verify PUID/PGID settings
+# - Can't access WebUI: Check LAN_NETWORK setting
+# - VPN not connecting: Check logs with: docker-compose logs qbittorrentvpn

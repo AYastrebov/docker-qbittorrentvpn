@@ -1,64 +1,143 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
-![GitHub Tag](https://img.shields.io/github/v/tag/ayastrebov/docker-qbittorrentvpn)
+
+[![GitHub Tag](https://img.shields.io/github/v/tag/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/ayastrebov/docker-qbittorrentvpn/docker-build.yml?branch=master)](https://github.com/AYastrebov/docker-qbittorrentvpn/actions)
+[![Docker Pulls](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/AYastrebov/docker-qbittorrentvpn/pkgs/container/docker-qbittorrentvpn)
+[![GitHub Stars](https://img.shields.io/github/stars/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/stargazers)
+[![License](https://img.shields.io/github/license/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/blob/master/LICENSE)
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
+
+**✨ Built and published automatically via GitHub Actions to GitHub Container Registry**
 
 [preview]: https://raw.githubusercontent.com/DyonR/docker-templates/master/Screenshots/qbittorrentvpn/qbittorrentvpn-webui.png "qBittorrent WebUI"
 ![alt text][preview]
 
+## Table of Contents
+- [Docker Features](#docker-features)
+- [Quick Start](#quick-start)
+- [Production Example](#production-example)
+- [Architecture & Build Information](#architecture--build-information)
+- [Variables, Volumes, and Ports](#variables-volumes-and-ports)
+- [Access the WebUI](#access-the-webui)
+- [How to use WireGuard](#how-to-use-wireguard)
+- [How to use OpenVPN](#how-to-use-openvpn)
+- [Support & Issues](#support--issues)
+- [Credits & Acknowledgments](#credits--acknowledgments)
+
 # Docker Features
-* Base: Debian bullseye-slim
-* [qBittorrent](https://github.com/qbittorrent/qBittorrent) compiled from source
-* [libtorrent](https://github.com/arvidn/libtorrent) compiled from source
-* Compiled with the latest version of [Boost](https://www.boost.org/)
-* Compiled with the latest versions of [CMake](https://cmake.org/)
-* Selectively enable or disable WireGuard or OpenVPN support
-* IP tables killswitch to prevent IP leaking when VPN connection fails
-* Configurable UID and GID for config files and /downloads for qBittorrent
-* Created with [Unraid](https://unraid.net/) in mind
-* BitTorrent port 8999 exposed by default
+* **Base Image**: Debian Trixie Slim - latest stable Debian release
+* **qBittorrent**: v5.1.1 compiled from source with latest dependencies
+* **Multi-Architecture**: Supports both AMD64 and ARM64 platforms
+* **Automated Builds**: Built and published via GitHub Actions to GitHub Container Registry
+* **VPN Support**: Selectively enable WireGuard or OpenVPN with automatic configuration
+* **Security**: IPtables killswitch prevents IP leaking when VPN connection fails
+* **Flexibility**: Configurable UID/GID for file permissions and container management
+* **Monitoring**: Built-in health checks and connection monitoring
+* **Optimized**: Multi-stage build for minimal image size
+* **Port Configuration**: BitTorrent port 8999 exposed by default
+* **Unraid Ready**: Created with [Unraid](https://unraid.net/) in mind
 
-## Run container from Docker registry
-The container is available from the Docker registry and this is the simplest way to get it  
-To run the container use this command, with additional parameters, please refer to the Variables, Volumes, and Ports section:
+## Quick Start
 
+### Using Docker Run
+The container is available from GitHub Container Registry and supports both AMD64 and ARM64 architectures.
+
+```bash
+docker run -d \
+  --name qbittorrentvpn \
+  -v /your/config/path/:/config \
+  -v /your/downloads/path/:/downloads \
+  -e "VPN_ENABLED=yes" \
+  -e "VPN_TYPE=wireguard" \
+  -e "LAN_NETWORK=192.168.0.0/24" \
+  -p 8080:8080 \
+  --cap-add NET_ADMIN \
+  --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
+  --restart unless-stopped \
+  ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
 ```
-$ docker run  -d \
-              -v /your/config/path/:/config \
-              -v /your/downloads/path/:/downloads \
-              -e "VPN_ENABLED=yes" \
-              -e "VPN_TYPE=wireguard" \
-              -e "LAN_NETWORK=192.168.0.0/24" \
-              -p 8080:8080 \
-              --cap-add NET_ADMIN \
-              --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
-              --restart unless-stopped \
-              ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
-```
 
-## Docker Compose
-Sample docker-compose.yml
+### Using Docker Compose (Recommended)
+Create a `docker-compose.yml` file:
+
 ```yaml
 services:
   qbittorrentvpn:
     image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
     container_name: qbittorrentvpn
+    hostname: qbittorrentvpn
     environment:
+      - TZ=Europe/Berlin                    # Set your timezone
       - VPN_ENABLED=yes
-      - VPN_TYPE=wireguard
+      - VPN_TYPE=wireguard                  # or 'openvpn'
       - RESTART_CONTAINER=yes
-      - LAN_NETWORK=192.168.0.0/24
+      - LAN_NETWORK=192.168.1.0/24          # Adjust to your local network
+      - PUID=1000                           # Your user ID
+      - PGID=1000                           # Your group ID
     volumes:
-      - /your/config/path/:/config
-      - /your/downloads/path/:/downloads
+      - ./config:/config                    # qBittorrent and VPN configs
+      - ./downloads:/downloads              # Download directory
     ports:
-      - 8080:8080/tcp
+      - 8080:8080/tcp                       # qBittorrent WebUI
     cap_add:
-      - NET_ADMIN
+      - NET_ADMIN                           # Required for VPN
     sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv4.conf.all.src_valid_mark=1  # Required for VPN
+      - net.ipv6.conf.all.disable_ipv6=0    # Enable if using IPv6
     restart: unless-stopped
+```
+
+**Setup Steps:**
+1. Create the directory structure:
+   ```bash
+   mkdir -p qbittorrent/{config,downloads}
+   cd qbittorrent
+   ```
+
+2. Save the above content as `docker-compose.yml`
+
+3. **For WireGuard**: Place your `wg0.conf` file in `./config/wireguard/`
+   **For OpenVPN**: Place your `.ovpn` file in `./config/openvpn/`
+
+4. Adjust the environment variables:
+   - `TZ`: Your timezone (find yours [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
+   - `LAN_NETWORK`: Your local network CIDR (check with `ip route | grep 192.168`)
+   - `PUID`/`PGID`: Your user/group IDs (get with `id` command)
+
+5. Start the container: `docker-compose up -d`
+
+**💡 Pro Tip**: Check out the complete [`docker-compose.example.yml`](docker-compose.example.yml) file in this repository for a production-ready configuration with detailed comments and troubleshooting tips!
+
+# Production Example
+
+For a complete, production-ready setup, use the [`docker-compose.example.yml`](docker-compose.example.yml) file included in this repository. This example is based on a real working configuration and includes:
+
+- **Comprehensive comments** explaining each setting
+- **Timezone configuration** (TZ environment variable)
+- **Proper file permissions** (PUID/PGID setup)
+- **Network configuration** guidance
+- **Complete setup instructions**
+- **Troubleshooting tips**
+
+**Quick setup using the example:**
+```bash
+# Clone or download the repository
+wget https://raw.githubusercontent.com/AYastrebov/docker-qbittorrentvpn/master/docker-compose.example.yml
+
+# Copy and customize
+cp docker-compose.example.yml docker-compose.yml
+nano docker-compose.yml  # Edit the configuration
+
+# Create directories
+mkdir -p config downloads
+
+# Add your VPN config (WireGuard example)
+mkdir -p config/wireguard
+# Copy your wg0.conf file to config/wireguard/
+
+# Start the container
+docker-compose up -d
 ```
 
 # Variables, Volumes, and Ports
@@ -98,7 +177,8 @@ services:
 | `8999` | UDP | Yes | qBittorrent UDP Listening Port | `8999:8999/udp`|
 
 # Access the WebUI
-Access https://IPADDRESS:PORT from a browser on the same network. (for example: https://192.168.0.90:8080)
+Access https://IPADDRESS:PORT from a browser on the same network.  
+**Example**: https://192.168.0.90:8080
 
 ## Default Credentials
 
@@ -106,6 +186,43 @@ Access https://IPADDRESS:PORT from a browser on the same network. (for example: 
 |----------|----------|
 |`username`| `admin` |
 |`password`| `adminadmin` |
+
+⚠️ **Security Note**: Change the default password immediately after first login!
+
+# Architecture & Build Information
+
+## Supported Architectures
+This image supports multiple architectures:
+- `linux/amd64` - Intel/AMD 64-bit
+- `linux/arm64` - ARM 64-bit (Apple Silicon, ARM servers)
+
+## Automated Builds
+- **CI/CD**: Automated builds via GitHub Actions
+- **Registry**: Published to GitHub Container Registry (`ghcr.io`)
+- **Triggers**: Builds automatically on version tags (`v*`)
+- **Multi-platform**: Built for both AMD64 and ARM64 simultaneously
+
+## Version Information
+- **qBittorrent**: v5.1.1 (compiled from source)
+- **Base OS**: Debian Trixie Slim
+- **Build Tools**: CMake, Ninja, Qt6
+- **VPN Support**: OpenVPN, WireGuard
+
+You can find all available versions on the [releases page](https://github.com/AYastrebov/docker-qbittorrentvpn/releases).
+
+## Container Registry Information
+- **Registry**: `ghcr.io/ayastrebov/docker-qbittorrentvpn`
+- **Tags Available**:
+  - `latest` - Latest stable release
+  - `vX.Y.Z` - Specific version tags
+- **Packages**: View all versions on [GitHub Packages](https://github.com/AYastrebov/docker-qbittorrentvpn/pkgs/container/docker-qbittorrentvpn)
+
+## Update Strategy
+To update to the latest version:
+```bash
+docker pull ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+docker-compose down && docker-compose up -d
+```
 
 # How to use WireGuard 
 The container will fail to boot if `VPN_ENABLED` is set and there is no valid .conf file present in the /config/wireguard directory. Drop a .conf file from your VPN provider into /config/wireguard and start the container again. The file must have the name `wg0.conf`, or it will fail to start.
@@ -139,13 +256,54 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 id <username>
 ```
 
-# Issues
-If you are having issues with this container please submit an issue on GitHub.  
-Please provide logs, Docker version and other information that can simplify reproducing the issue.  
-If possible, always use the most up to date version of Docker, you operating system, kernel and the container itself. Support is always a best-effort basis.
+# Support & Issues
 
-### Credits:
-[DyonR/docker-qbittorrentvpn](https://github.com/DyonR/docker-qbittorrentvpn)
-[MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)  
-[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)  
-This project is a fork of DyonR/docker-qbittorrentvpn, which itself originates from MarkusMcNugen/docker-qBittorrentvpn. Forking from DyonR/docker-qbittorrentvpn was not possible as it was already forked by DyonR/jackettvpn.
+## Getting Help
+If you are having issues with this container:
+
+1. **Check the [Wiki](https://github.com/AYastrebov/docker-qbittorrentvpn/wiki)** (if available)
+2. **Search [existing issues](https://github.com/AYastrebov/docker-qbittorrentvpn/issues)** to see if your problem has been reported
+3. **Create a [new issue](https://github.com/AYastrebov/docker-qbittorrentvpn/issues/new)** with detailed information
+
+## When Creating an Issue
+Please provide:
+- **Docker version**: `docker --version`
+- **Container logs**: `docker logs qbittorrentvpn`
+- **Your configuration**: docker-compose.yml or docker run command (remove sensitive data)
+- **Host OS and kernel version**
+- **Expected vs actual behavior**
+- **Steps to reproduce the issue**
+
+## Best Practices
+- Always use the most up-to-date version of Docker and this container
+- Keep your host OS and kernel updated
+- Support is provided on a best-effort basis
+
+## Contributing
+Contributions are welcome! Please read the contribution guidelines and submit pull requests for any improvements.
+
+## Project Status
+This project is actively maintained and regularly updated with:
+- Latest qBittorrent releases
+- Security patches
+- Community feature requests
+- Bug fixes and improvements
+
+## Credits & Acknowledgments
+
+This project builds upon the excellent work of:
+- **[DyonR/docker-qbittorrentvpn](https://github.com/DyonR/docker-qbittorrentvpn)** - Primary inspiration and base
+- **[MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)** - Original implementation
+- **[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)** - VPN configuration patterns
+
+### Why This Fork?
+This project was created as an independent fork because DyonR/docker-qbittorrentvpn had already been forked from DyonR/jackettvpn, making a direct GitHub fork impossible. This version includes:
+- **Modern CI/CD**: GitHub Actions automation
+- **Multi-architecture**: ARM64 and AMD64 support
+- **Updated base**: Latest Debian Trixie
+- **Enhanced security**: Improved build process
+- **Better documentation**: Comprehensive README
+
+---
+
+**⭐ If you find this project useful, please consider starring it on [GitHub](https://github.com/AYastrebov/docker-qbittorrentvpn)!**

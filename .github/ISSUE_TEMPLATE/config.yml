@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/AYastrebov/docker-qbittorrentvpn/blob/master/README.md
+    about: Read the project documentation and setup guides
+  
+  - name: 💡 Discussions
+    url: https://github.com/AYastrebov/docker-qbittorrentvpn/discussions
+    about: Ask questions and discuss ideas with the community
+  
+  - name: 🔒 Security Issues
+    url: https://github.com/AYastrebov/docker-qbittorrentvpn/security/advisories/new
+    about: Report security vulnerabilities privately
