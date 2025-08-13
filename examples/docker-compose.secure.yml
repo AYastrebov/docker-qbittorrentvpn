@@ -1,0 +1,79 @@
+# Security-focused qBittorrent VPN configuration
+# This configuration prioritizes security and privacy
+
+services:
+  qbittorrentvpn:
+    image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+    container_name: qbittorrentvpn-secure
+    hostname: qbittorrentvpn
+    
+    environment:
+      - TZ=UTC  # Use UTC to avoid timezone leaks
+      - VPN_ENABLED=yes
+      - VPN_TYPE=wireguard
+      - RESTART_CONTAINER=yes
+      - LAN_NETWORK=192.168.1.0/24
+      
+      # Security settings
+      - PUID=1000
+      - PGID=1000
+      - UMASK=077  # Restrictive file permissions
+      
+      # Use privacy-focused DNS
+      - NAME_SERVERS=9.9.9.9,1.1.1.1
+      
+      # Enhanced health checking
+      - HEALTH_CHECK_INTERVAL=60
+      - HEALTH_CHECK_AMOUNT=3
+      - HEALTH_CHECK_HOST=1.1.1.1
+      
+    volumes:
+      - ./config:/config:Z  # SELinux context if applicable
+      - ./downloads:/downloads:Z
+      
+    ports:
+      - "127.0.0.1:8080:8080/tcp"  # Bind only to localhost
+      
+    # Drop unnecessary capabilities and add back only what's needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+      - SETUID
+      - SETGID
+      
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined  # May need adjustment based on your system
+      
+    # Resource limits
+    mem_limit: 1g
+    cpus: 2.0
+    
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1  # Disable IPv6 to prevent leaks
+      
+    restart: unless-stopped
+    
+    # Optional: Use a custom network for additional isolation
+    networks:
+      - vpn_network
+
+# Optional: Create an isolated network
+networks:
+  vpn_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+
+# Security Notes:
+# 1. This configuration prioritizes security over convenience
+# 2. WebUI is only accessible from localhost - use SSH tunneling for remote access
+# 3. IPv6 is disabled to prevent potential leaks
+# 4. Restrictive file permissions (umask 077)
+# 5. No-new-privileges flag prevents privilege escalation
+# 6. Resource limits prevent resource exhaustion attacks

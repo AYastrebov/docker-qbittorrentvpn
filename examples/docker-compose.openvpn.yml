@@ -1,0 +1,40 @@
+services:
+  qbittorrentvpn:
+    image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+    container_name: qbittorrentvpn-openvpn
+    hostname: qbittorrentvpn
+    
+    environment:
+      - TZ=Europe/Berlin
+      - VPN_ENABLED=yes
+      - VPN_TYPE=openvpn
+      - RESTART_CONTAINER=yes
+      - LAN_NETWORK=192.168.1.0/24
+      - PUID=1000
+      - PGID=1000
+      # Optional: Automatic credential configuration
+      # - VPN_USERNAME=your_username
+      # - VPN_PASSWORD=your_password
+      
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+      
+    ports:
+      - "8080:8080/tcp"
+      
+    cap_add:
+      - NET_ADMIN
+      
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      
+    restart: unless-stopped
+
+# Instructions:
+# 1. Place your .ovpn file in ./config/openvpn/
+# 2. If using username/password auth, either:
+#    - Set VPN_USERNAME and VPN_PASSWORD environment variables, OR
+#    - Create ./config/openvpn/credentials.conf with username on line 1, password on line 2
+# 3. Update LAN_NETWORK to match your local network
+# 4. Run: docker-compose up -d

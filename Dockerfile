@@ -29,6 +29,15 @@ RUN curl -L -o qbittorrent.tar.gz "https://sourceforge.net/projects/qbittorrent/
     cmake --build build --parallel $(nproc) && \
     cmake --install build
 
+# Add build metadata
+LABEL org.opencontainers.image.version="${QBITTORRENT_VERSION}"
+LABEL org.opencontainers.image.title="qBittorrent VPN Docker"
+LABEL org.opencontainers.image.description="qBittorrent with WireGuard/OpenVPN and iptables killswitch"
+LABEL org.opencontainers.image.url="https://github.com/AYastrebov/docker-qbittorrentvpn"
+LABEL org.opencontainers.image.source="https://github.com/AYastrebov/docker-qbittorrentvpn"
+LABEL org.opencontainers.image.vendor="AYastrebov"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+
 # Final minimal runtime image
 FROM debian:trixie-slim
 WORKDIR /opt

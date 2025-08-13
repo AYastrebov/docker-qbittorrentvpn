@@ -1,10 +1,11 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
 
-[![GitHub Tag](https://img.shields.io/github/v/tag/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/ayastrebov/docker-qbittorrentvpn/docker-build.yml?branch=master)](https://github.com/AYastrebov/docker-qbittorrentvpn/actions)
-[![Docker Pulls](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/AYastrebov/docker-qbittorrentvpn/pkgs/container/docker-qbittorrentvpn)
-[![GitHub Stars](https://img.shields.io/github/stars/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/stargazers)
-[![License](https://img.shields.io/github/license/ayastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/blob/master/LICENSE)
+[![GitHub Tag](https://img.shields.io/github/v/tag/AYastrebov/docker-qbittorrentvpn?sort=semver)](https://github.com/AYastrebov/docker-qbittorrentvpn/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/AYastrebov/docker-qbittorrentvpn/docker-build.yml?branch=master)](https://github.com/AYastrebov/docker-qbittorrentvpn/actions)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Fayastrebov%2Fdocker--qbittorrentvpn-blue)](https://github.com/AYastrebov/docker-qbittorrentvpn/pkgs/container/docker-qbittorrentvpn)
+[![Image Size](https://img.shields.io/docker/image-size/ghcr.io/ayastrebov/docker-qbittorrentvpn/latest)](https://github.com/AYastrebov/docker-qbittorrentvpn/pkgs/container/docker-qbittorrentvpn)
+[![GitHub Stars](https://img.shields.io/github/stars/AYastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/stargazers)
+[![License](https://img.shields.io/github/license/AYastrebov/docker-qbittorrentvpn)](https://github.com/AYastrebov/docker-qbittorrentvpn/blob/master/LICENSE)
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
 
@@ -27,7 +28,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 
 # Docker Features
 * **Base Image**: Debian Trixie Slim - latest stable Debian release
-* **qBittorrent**: v5.1.1 compiled from source with latest dependencies
+* **qBittorrent**: v5.1.2 compiled from source with latest dependencies
 * **Multi-Architecture**: Supports both AMD64 and ARM64 platforms
 * **Automated Builds**: Built and published via GitHub Actions to GitHub Container Registry
 * **VPN Support**: Selectively enable WireGuard or OpenVPN with automatic configuration
@@ -203,7 +204,7 @@ This image supports multiple architectures:
 - **Multi-platform**: Built for both AMD64 and ARM64 simultaneously
 
 ## Version Information
-- **qBittorrent**: v5.1.1 (compiled from source)
+- **qBittorrent**: v5.1.2 (compiled from source)
 - **Base OS**: Debian Trixie Slim
 - **Build Tools**: CMake, Ninja, Qt6
 - **VPN Support**: OpenVPN, WireGuard

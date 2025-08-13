@@ -1,0 +1,38 @@
+services:
+  qbittorrentvpn:
+    image: ghcr.io/ayastrebov/docker-qbittorrentvpn:latest
+    container_name: qbittorrentvpn-wireguard
+    hostname: qbittorrentvpn
+    
+    environment:
+      - TZ=Europe/Berlin
+      - VPN_ENABLED=yes
+      - VPN_TYPE=wireguard
+      - RESTART_CONTAINER=yes
+      - LAN_NETWORK=192.168.1.0/24
+      - PUID=1000
+      - PGID=1000
+      # WireGuard specific settings
+      - NAME_SERVERS=1.1.1.1,1.0.0.1
+      
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+      
+    ports:
+      - "8080:8080/tcp"
+      
+    cap_add:
+      - NET_ADMIN
+      
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      
+    restart: unless-stopped
+
+# Instructions:
+# 1. Place your wg0.conf file in ./config/wireguard/
+# 2. Ensure the config includes proper DNS settings
+# 3. Update LAN_NETWORK to match your local network
+# 4. Run: docker-compose up -d

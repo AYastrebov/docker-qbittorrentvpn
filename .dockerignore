@@ -1,0 +1,33 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+*.md
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Example files
+docker-compose.example.yml
+examples/
+
+# Test files
+test/
+tests/

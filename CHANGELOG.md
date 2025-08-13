@@ -9,18 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Multi-architecture support (AMD64 and ARM64)
-- GitHub Actions CI/CD pipeline
+- GitHub Actions CI/CD pipeline with security scanning
 - Comprehensive production example configuration
 - Enhanced documentation and setup guides
+- Example configurations for different use cases
+- Custom health check script example
+- Security-focused Docker Compose configuration
+- Container image labels for better metadata
+- Trivy security scanning in CI/CD
+- Monthly automated builds for security updates
 
 ### Changed
 - Updated base image to Debian Trixie Slim
+- Updated qBittorrent to v5.1.2
 - Improved Docker Compose examples
 - Enhanced README with better structure and navigation
+- Fixed badge URLs for consistency
+- Added comprehensive .dockerignore and .gitattributes
 
 ### Security
 - Updated dependencies to latest versions
 - Improved container security practices
+- Added vulnerability scanning with Trivy
+- Enhanced security options in example configurations
+
+### Fixed
+- Corrected qBittorrent version references in documentation
+- Fixed case inconsistency in badge URLs
+- Improved Docker image size badge accuracy
 
 ## [Previous Versions]
 
