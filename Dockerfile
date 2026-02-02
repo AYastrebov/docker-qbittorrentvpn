@@ -1,10 +1,13 @@
 # Base image with essential build dependencies
-FROM debian:trixie-slim AS builder
+ARG DEBIAN_VERSION=trixie-slim
+FROM debian:${DEBIAN_VERSION} AS builder
 WORKDIR /opt
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies from official repositories
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -17,8 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-dev \
     libssl-dev \
     libtorrent-rasterbar-dev \
-    zlib1g-dev && \
-    rm -rf /var/lib/apt/lists/*
+    zlib1g-dev
 
 # Fetch and compile qBittorrent
 ARG QBITTORRENT_VERSION=5.1.2
@@ -29,22 +31,16 @@ RUN curl -L -o qbittorrent.tar.gz "https://sourceforge.net/projects/qbittorrent/
     cmake --build build --parallel $(nproc) && \
     cmake --install build
 
-# Add build metadata
-LABEL org.opencontainers.image.version="${QBITTORRENT_VERSION}"
-LABEL org.opencontainers.image.title="qBittorrent VPN Docker"
-LABEL org.opencontainers.image.description="qBittorrent with WireGuard/OpenVPN and iptables killswitch"
-LABEL org.opencontainers.image.url="https://github.com/AYastrebov/docker-qbittorrentvpn"
-LABEL org.opencontainers.image.source="https://github.com/AYastrebov/docker-qbittorrentvpn"
-LABEL org.opencontainers.image.vendor="AYastrebov"
-LABEL org.opencontainers.image.licenses="GPL-3.0"
-
 # Final minimal runtime image
-FROM debian:trixie-slim
+ARG DEBIAN_VERSION
+FROM debian:${DEBIAN_VERSION}
 WORKDIR /opt
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only required runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     dos2unix \
@@ -53,7 +49,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ipcalc \
     iptables \
     moreutils \
-    net-tools \
     openresolv \
     openvpn \
     wireguard-tools \
@@ -63,27 +58,40 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libqt6sql6 \
     libqt6xml6 \
     kmod \
-    procps && \
-    rm -rf /var/lib/apt/lists/*
+    procps
 
-# Copy compiled qBittorrent binary
+# Copy compiled qBittorrent binary (changes rarely)
 COPY --from=builder /usr/local /usr/local
 
-# Remove src_valid_mark from wg-quick
+# Static system modifications
 RUN sed -i /net\.ipv4\.conf\.all\.src_valid_mark/d $(which wg-quick)
 
-# Persist config and downloads
-VOLUME /config /downloads
-
-# Copy scripts and configurations
+# Copy scripts and configurations (may change more often)
 COPY openvpn/ /etc/openvpn/
 COPY qbittorrent/ /etc/qbittorrent/
 
 # Set executable permissions
 RUN chmod 755 /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
 
+# Persist config and downloads
+VOLUME /config /downloads
+
 # Expose ports
 EXPOSE 8080 8999 8999/udp
+
+# Health check for container orchestration
+HEALTHCHECK --interval=60s --timeout=15s --start-period=120s --retries=3 \
+    CMD curl -sf http://localhost:8080 || exit 1
+
+# Add build metadata
+ARG QBITTORRENT_VERSION
+LABEL org.opencontainers.image.version="${QBITTORRENT_VERSION}" \
+      org.opencontainers.image.title="qBittorrent VPN Docker" \
+      org.opencontainers.image.description="qBittorrent with WireGuard/OpenVPN and iptables killswitch" \
+      org.opencontainers.image.url="https://github.com/AYastrebov/docker-qbittorrentvpn" \
+      org.opencontainers.image.source="https://github.com/AYastrebov/docker-qbittorrentvpn" \
+      org.opencontainers.image.vendor="AYastrebov" \
+      org.opencontainers.image.licenses="GPL-3.0"
 
 # Set default startup command
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]

@@ -1,0 +1,116 @@
+name: Check for New qBittorrent Version
+
+on:
+  schedule:
+    # Run weekly on Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT_VERSION=$(cat VERSION)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Get latest qBittorrent release
+        id: latest
+        run: |
+          # Fetch the latest release from qBittorrent GitHub
+          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/qbittorrent/qBittorrent/releases/latest" | jq -r '.tag_name')
+
+          # Extract version number (remove "release-" prefix)
+          LATEST_VERSION="${LATEST_RELEASE#release-}"
+
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_release_tag=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          echo "Latest qBittorrent version: $LATEST_VERSION"
+
+      - name: Compare versions
+        id: compare
+        run: |
+          CURRENT="${{ steps.current.outputs.current_version }}"
+          LATEST="${{ steps.latest.outputs.latest_version }}"
+
+          if [ "$CURRENT" != "$LATEST" ]; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "New version available: $LATEST (current: $CURRENT)"
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "Already up to date: $CURRENT"
+          fi
+
+      - name: Check for existing issue
+        id: existing_issue
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          # Search for existing open issues with the version update title
+          EXISTING=$(gh issue list --state open --search "Update qBittorrent to v${{ steps.latest.outputs.latest_version }}" --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "issue_number=$EXISTING" >> $GITHUB_OUTPUT
+            echo "Existing issue found: #$EXISTING"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "No existing issue found"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create update issue
+        if: steps.compare.outputs.needs_update == 'true' && steps.existing_issue.outputs.exists != 'true'
+        run: |
+          gh issue create \
+            --title "Update qBittorrent to v${{ steps.latest.outputs.latest_version }}" \
+            --body "## New qBittorrent Version Available
+
+A new version of qBittorrent has been released!
+
+- **Current version**: v${{ steps.current.outputs.current_version }}
+- **Latest version**: v${{ steps.latest.outputs.latest_version }}
+
+### Update Instructions
+
+1. Go to **Actions** > **Bump qBittorrent Version**
+2. Click **Run workflow**
+3. Enter version: \`${{ steps.latest.outputs.latest_version }}\`
+4. Click **Run workflow**
+
+### Links
+- [qBittorrent Release Notes](https://github.com/qbittorrent/qBittorrent/releases/tag/${{ steps.latest.outputs.latest_release_tag }})
+- [Bump Version Workflow](https://github.com/${{ github.repository }}/actions/workflows/bump-version.yml)
+
+---
+*This issue was automatically created by the version check workflow.*"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Version Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Current version**: ${{ steps.current.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latest version**: ${{ steps.latest.outputs.latest_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.compare.outputs.needs_update }}" == "true" ]; then
+            echo "**Update available!**" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.existing_issue.outputs.exists }}" == "true" ]; then
+              echo "Issue already exists: #${{ steps.existing_issue.outputs.issue_number }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "A new issue has been created." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "Already up to date." >> $GITHUB_STEP_SUMMARY
+          fi

@@ -24,8 +24,13 @@ Thumbs.db
 # Logs
 *.log
 
+# License
+LICENSE
+
+# Docker Compose files
+docker-compose*.yml
+
 # Example files
-docker-compose.example.yml
 examples/
 
 # Test files
