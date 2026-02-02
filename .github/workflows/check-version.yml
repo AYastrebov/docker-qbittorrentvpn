@@ -76,24 +76,24 @@ jobs:
             --title "Update qBittorrent to v${{ steps.latest.outputs.latest_version }}" \
             --body "## New qBittorrent Version Available
 
-A new version of qBittorrent has been released!
+          A new version of qBittorrent has been released!
 
-- **Current version**: v${{ steps.current.outputs.current_version }}
-- **Latest version**: v${{ steps.latest.outputs.latest_version }}
+          - **Current version**: v${{ steps.current.outputs.current_version }}
+          - **Latest version**: v${{ steps.latest.outputs.latest_version }}
 
-### Update Instructions
+          ### Update Instructions
 
-1. Go to **Actions** > **Bump qBittorrent Version**
-2. Click **Run workflow**
-3. Enter version: \`${{ steps.latest.outputs.latest_version }}\`
-4. Click **Run workflow**
+          1. Go to **Actions** > **Bump qBittorrent Version**
+          2. Click **Run workflow**
+          3. Enter version: \`${{ steps.latest.outputs.latest_version }}\`
+          4. Click **Run workflow**
 
-### Links
-- [qBittorrent Release Notes](https://github.com/qbittorrent/qBittorrent/releases/tag/${{ steps.latest.outputs.latest_release_tag }})
-- [Bump Version Workflow](https://github.com/${{ github.repository }}/actions/workflows/bump-version.yml)
+          ### Links
+          - [qBittorrent Release Notes](https://github.com/qbittorrent/qBittorrent/releases/tag/${{ steps.latest.outputs.latest_release_tag }})
+          - [Bump Version Workflow](https://github.com/${{ github.repository }}/actions/workflows/bump-version.yml)
 
----
-*This issue was automatically created by the version check workflow.*"
+          ---
+          *This issue was automatically created by the version check workflow.*"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
