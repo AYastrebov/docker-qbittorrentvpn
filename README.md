@@ -21,6 +21,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 - [Access the WebUI](#access-the-webui)
 - [How to use WireGuard](#how-to-use-wireguard)
 - [How to use OpenVPN](#how-to-use-openvpn)
+- [Verifying VPN Protection](#verifying-vpn-protection)
 - [Support & Issues](#support--issues)
 - [Credits & Acknowledgments](#credits--acknowledgments)
 
@@ -253,6 +254,140 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 
 ```
 id <username>
+```
+
+# Verifying VPN Protection
+
+After setting up the container, it's important to verify that your real IP address is not being leaked. This section covers various methods to test your VPN protection.
+
+## Torrent IP Leak Test
+
+The most reliable way to verify that torrent traffic is properly routed through the VPN is to use a torrent-specific leak test.
+
+### Using bash.ws Torrent Leak Test
+
+1. Visit [https://bash.ws/torrent-leak-test](https://bash.ws/torrent-leak-test)
+2. Download the generated magnet link or .torrent file
+3. Add the torrent to qBittorrent via the WebUI
+4. Wait for the test to detect your IP address
+5. The displayed IP should be your **VPN IP**, not your real IP
+
+**Alternative torrent leak test services:**
+- [https://ipleak.net/](https://ipleak.net/) - Click "Torrent Address detection" and use the magnet link
+- [https://torguard.net/checkmytorrentipaddress.php](https://torguard.net/checkmytorrentipaddress.php)
+
+## General IP Leak Tests
+
+These tests verify your general IP exposure (useful for checking WebUI access):
+
+| Service | URL | What it tests |
+|---------|-----|---------------|
+| IPLeak.net | [https://ipleak.net/](https://ipleak.net/) | IPv4, IPv6, DNS, WebRTC leaks |
+| DNS Leak Test | [https://dnsleaktest.com/](https://dnsleaktest.com/) | DNS server leaks |
+| BrowserLeaks | [https://browserleaks.com/ip](https://browserleaks.com/ip) | Comprehensive IP info |
+| IPv6 Leak Test | [https://ipv6leak.com/](https://ipv6leak.com/) | IPv6-specific leak test |
+| test-ipv6.com | [https://test-ipv6.com/](https://test-ipv6.com/) | IPv6 connectivity and leaks |
+
+**Note:** Run these tests from within the container to check VPN routing:
+```bash
+docker exec qbittorrentvpn curl -s https://ipinfo.io
+```
+
+## IPv6 Leak Protection
+
+The container blocks all IPv6 traffic by default using ip6tables rules:
+- `ip6tables -P INPUT DROP` - Blocks all incoming IPv6
+- `ip6tables -P OUTPUT DROP` - Blocks all outgoing IPv6
+
+This ensures your IPv6 address cannot leak even if your VPN provider doesn't support IPv6.
+
+### Verifying IPv6 is Blocked
+
+```bash
+# Check ip6tables rules
+docker exec qbittorrentvpn ip6tables -L -v -n
+
+# Verify default policies are DROP
+docker exec qbittorrentvpn ip6tables -S | grep -E "^-P (INPUT|OUTPUT)"
+# Expected output:
+# -P INPUT DROP
+# -P OUTPUT DROP
+
+# Test that IPv6 connectivity is blocked
+docker exec qbittorrentvpn curl -6 -s --connect-timeout 5 https://ipv6.google.com
+# Should fail/timeout - IPv6 is blocked
+```
+
+### IPv6 Leak Test via Torrent
+
+When using torrent leak tests (like bash.ws or ipleak.net), verify that:
+1. **Only your VPN's IPv4 address** is detected
+2. **No IPv6 address** is shown (should say "No IPv6 detected" or similar)
+
+If an IPv6 address appears in torrent leak tests, check that ip6tables rules are properly applied:
+```bash
+docker logs qbittorrentvpn | grep -i ipv6
+# Look for any warnings about IPv6 rules not being applied
+```
+
+**Note:** If you see `[WARN] IPv6 INPUT/OUTPUT rules not applied`, your host system may not have IPv6 kernel modules loaded, but this is generally safe as IPv6 won't work anyway.
+
+## Verifying Killswitch (iptables)
+
+To verify that the iptables killswitch is properly configured:
+
+```bash
+# Check iptables rules
+docker exec qbittorrentvpn iptables -L -v -n
+
+# Verify default policies are DROP
+docker exec qbittorrentvpn iptables -S | grep -E "^-P (INPUT|OUTPUT)"
+# Expected output:
+# -P INPUT DROP
+# -P OUTPUT DROP
+```
+
+## Testing Killswitch Effectiveness
+
+To verify the killswitch works when VPN goes down:
+
+1. **Start the container** and verify VPN is connected:
+   ```bash
+   docker exec qbittorrentvpn curl -s https://ipinfo.io/ip
+   # Should show VPN IP
+   ```
+
+2. **Simulate VPN failure** by bringing down the tunnel interface:
+   ```bash
+   # For WireGuard
+   docker exec qbittorrentvpn wg-quick down wg0
+
+   # For OpenVPN - find and kill the process
+   docker exec qbittorrentvpn pkill openvpn
+   ```
+
+3. **Verify traffic is blocked**:
+   ```bash
+   docker exec qbittorrentvpn curl -s --connect-timeout 5 https://ipinfo.io/ip
+   # Should timeout or fail - traffic is blocked by killswitch
+   ```
+
+4. **Restart the container** to restore VPN connection:
+   ```bash
+   docker restart qbittorrentvpn
+   ```
+
+## Automated Health Checks
+
+The container includes built-in health monitoring:
+
+- **Docker HEALTHCHECK**: Verifies both WebUI and network connectivity every 60 seconds
+- **Internal health loop**: Pings `HEALTH_CHECK_HOST` (default: `one.one.one.one`) at `HEALTH_CHECK_INTERVAL`
+- **Auto-restart**: If `RESTART_CONTAINER=yes`, the container restarts when VPN connection is lost
+
+Check container health status:
+```bash
+docker inspect --format='{{.State.Health.Status}}' qbittorrentvpn
 ```
 
 # Support & Issues

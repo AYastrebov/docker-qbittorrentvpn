@@ -1,14 +1,21 @@
 #!/bin/bash
 # Forked from binhex's OpenVPN dockers
-# Wait until tunnel is up
+# Wait until tunnel is up (with timeout)
+
+VPN_WAIT_TIMEOUT=${VPN_WAIT_TIMEOUT:-120}
+elapsed=0
 
 while : ; do
 	tunnelstat=$(netstat -ie | grep -E "tun|tap|wg")
-	if [[ ! -z "${tunnelstat}" ]]; then
+	if [[ -n "${tunnelstat}" ]]; then
 		break
-	else
-		sleep 1
 	fi
+	if [[ $elapsed -ge $VPN_WAIT_TIMEOUT ]]; then
+		echo "[ERROR] VPN tunnel did not come up within ${VPN_WAIT_TIMEOUT} seconds" | ts '%Y-%m-%d %H:%M:%.S'
+		exit 1
+	fi
+	sleep 1
+	((elapsed++))
 done
 
 # identify docker bridge interface name (probably eth0)
@@ -97,7 +104,9 @@ fi
 iptables -P INPUT DROP
 
 # set policy to drop ipv6 for input
-ip6tables -P INPUT DROP 1>&- 2>&-
+if ! ip6tables -P INPUT DROP 2>/dev/null; then
+	echo "[WARN] IPv6 INPUT rules not applied - ip6tables may not be available" | ts '%Y-%m-%d %H:%M:%.S'
+fi
 
 # accept input to tunnel adapter
 iptables -A INPUT -i "${VPN_DEVICE_TYPE}" -j ACCEPT
@@ -144,7 +153,9 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -P OUTPUT DROP
 
 # set policy to drop ipv6 for output
-ip6tables -P OUTPUT DROP 1>&- 2>&-
+if ! ip6tables -P OUTPUT DROP 2>/dev/null; then
+	echo "[WARN] IPv6 OUTPUT rules not applied - ip6tables may not be available" | ts '%Y-%m-%d %H:%M:%.S'
+fi
 
 # accept output from tunnel adapter
 iptables -A OUTPUT -o "${VPN_DEVICE_TYPE}" -j ACCEPT

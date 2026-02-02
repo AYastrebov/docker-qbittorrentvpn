@@ -125,7 +125,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 	HOST=${HEALTH_CHECK_HOST}
 	DEFAULT_HOST="one.one.one.one"
 	INTERVAL=${HEALTH_CHECK_INTERVAL}
-	DEFAULT_INTERVAL=300
+	DEFAULT_INTERVAL=60
 	DEFAULT_HEALTH_CHECK_AMOUNT=1
 
 	# If host is zero (not set) default it to the DEFAULT_HOST variable

@@ -81,7 +81,7 @@ EXPOSE 8080 8999 8999/udp
 
 # Health check for container orchestration
 HEALTHCHECK --interval=60s --timeout=15s --start-period=120s --retries=3 \
-    CMD curl -sf http://localhost:8080 || exit 1
+    CMD curl -sf http://localhost:8080 > /dev/null && ping -c 1 -W 5 one.one.one.one > /dev/null || exit 1
 
 # Add build metadata
 ARG QBITTORRENT_VERSION
