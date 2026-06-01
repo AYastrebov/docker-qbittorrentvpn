@@ -37,7 +37,7 @@ jobs:
         run: |
           latest=$(curl -sSL "https://api.github.com/repos/qbittorrent/qBittorrent/tags" \
             | jq -r '[.[] | select(.name | test("^(release-)?v?[0-9]+\\.[0-9]+\\.[0-9]+$")) | .name] | first' \
-            | sed -E 's/^(release-)?v//')
+            | sed -E 's/^release-//' | sed -E 's/^v//')
           echo "version=$latest" >> "$GITHUB_OUTPUT"
 
       - name: Compare versions
@@ -123,7 +123,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results to GitHub Security tab
-        if: always() && steps.compare.outputs.changed == 'true'
+        if: steps.compare.outputs.changed == 'true' && hashFiles('trivy-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
