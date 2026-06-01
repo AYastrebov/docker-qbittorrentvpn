@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Fetch and compile qBittorrent
 ARG QBITTORRENT_VERSION=5.2.1
-RUN curl -L -o qbittorrent.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-${QBITTORRENT_VERSION}/qbittorrent-${QBITTORRENT_VERSION}.tar.gz/download" && \
+RUN curl -L -o qbittorrent.tar.gz "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent/qbittorrent-${QBITTORRENT_VERSION}/qbittorrent-${QBITTORRENT_VERSION}.tar.gz" && \
     tar -xzf qbittorrent.tar.gz --strip-components=1 && rm qbittorrent.tar.gz && \
     cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local -DGUI=OFF && \
